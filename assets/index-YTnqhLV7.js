@@ -1,5 +1,5 @@
 const LABS = [
-  "Laboratorio de AnatomÃ­a Digital",
+  "Laboratorio de Anatomía Digital",
   "Laboratorio de Nanociencias",
   "Laboratorio EICT",
   "Laboratorio DITEC"
@@ -18,7 +18,7 @@ const escapeHtml = (value = "") =>
 
 const formatDate = (value) => {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value || "â€”";
+  if (Number.isNaN(date.getTime())) return value || "—";
   return date.toLocaleString("es-BO", {
     dateStyle: "medium",
     timeStyle: "short"
@@ -27,13 +27,13 @@ const formatDate = (value) => {
 
 const formatDateOnly = (value) => {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value || "â€”";
+  if (Number.isNaN(date.getTime())) return value || "—";
   return date.toLocaleDateString("es-BO", { dateStyle: "medium" });
 };
 
 const formatHourRange = (value) => {
   const start = new Date(value);
-  if (Number.isNaN(start.getTime())) return "â€”";
+  if (Number.isNaN(start.getTime())) return "—";
   const end = new Date(start.getTime() + 60 * 60 * 1000);
   const options = { hour: "numeric", minute: "2-digit", hour12: true };
   return `${start.toLocaleTimeString("es-BO", options)} - ${end.toLocaleTimeString("es-BO", options)}`;
@@ -41,7 +41,7 @@ const formatHourRange = (value) => {
 
 const renderList = () => {
   if (reservations.length === 0) {
-    return `<p class="empty">No hay reservas aÃºn.</p>`;
+    return `<p class="empty">No hay reservas aún.</p>`;
   }
 
   const rows = reservations
@@ -63,8 +63,8 @@ const renderList = () => {
         <thead>
           <tr>
             <th>Nombre</th>
-            <th>Fecha</th>
-            <th>Horario</th>
+            <th>Día</th>
+            <th>Hora</th>
             <th>Laboratorio</th>
           </tr>
         </thead>
@@ -82,7 +82,8 @@ const renderModal = () => `
         <input name="studentId" placeholder="ID" autocomplete="off" required />
         <input name="name" placeholder="Nombre" autocomplete="off" required />
         <input name="email" type="email" placeholder="Email" autocomplete="off" required />
-        <input type="datetime-local" name="reservationDate" step="3600" required />
+        <input type="date" name="reservationDay" required />
+        <input type="time" name="reservationTime" step="3600" min="00:00" max="23:00" required />
         <div class="select-wrap">
           <label for="laboratory">Laboratorio</label>
           <select id="laboratory" name="laboratory">
@@ -115,7 +116,7 @@ const render = () => {
       </header>
 
       <section class="container">
-        <h2 class="section-title">PrÃ³ximas reservas</h2>
+        <h2 class="section-title">Próximas reservas</h2>
         ${renderList()}
       </section>
 
@@ -142,20 +143,23 @@ const render = () => {
       event.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
-      const startDate = new Date(data.reservationDate);
-      const isValidDate = !Number.isNaN(startDate.getTime());
+      const day = data.reservationDay;
+      const time = data.reservationTime;
+      const startDate = new Date(`${day}T${time}`);
+      const hasDayAndTime = Boolean(day) && Boolean(time);
+      const isValidDate = hasDayAndTime && !Number.isNaN(startDate.getTime());
       const onTheHour =
         startDate.getMinutes() === 0 &&
         startDate.getSeconds() === 0 &&
         startDate.getMilliseconds() === 0;
 
       if (!isValidDate) {
-        alert("Selecciona una fecha y hora vÃ¡lidas.");
+        alert("Selecciona un día y una hora válidos.");
         return;
       }
 
       if (!onTheHour) {
-        alert("La hora debe estar en punto (ej. 14:00, 15:00).");
+        alert("La hora debe terminar en :00 (ej. 2:00, 3:00, 14:00).");
         return;
       }
 
@@ -165,7 +169,7 @@ const render = () => {
           studentId: data.studentId,
           name: data.name,
           email: data.email,
-          reservationDate: data.reservationDate,
+          reservationDate: `${day}T${time}`,
           laboratory: data.laboratory
         }
       ];
