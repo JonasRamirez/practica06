@@ -1,0 +1,9 @@
+{
+  "homepage": "https://JonasRamirez.github.io/st-icc-354-001-jxra0003",
+  "scripts": {
+    "deploy": "gh-pages -d dist"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}
