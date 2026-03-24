@@ -2,7 +2,7 @@ import ReservationItem from "./ReservationItem";
 
 export default function ReservationList({ reservations }) {
   if (reservations.length === 0) {
-    return <p>No hay reservas aún.</p>;
+    return <p className="empty">No hay reservas aún. Agenda la primera.</p>;
   }
 
   return (
