@@ -30,22 +30,32 @@ const renderList = () => {
     return `<p class="empty">No hay reservas aún.</p>`;
   }
 
-  const items = reservations
+  const rows = reservations
     .map(
       (reservation) => `
-      <li class="card">
-        <div class="card-top">
-          <span class="pill">${escapeHtml(reservation.laboratory)}</span>
-          <span class="date">${escapeHtml(formatDate(reservation.reservationDate))}</span>
-        </div>
-        <h3>${escapeHtml(reservation.name || "Sin nombre")}</h3>
-        <p class="muted">Reserva registrada</p>
-      </li>
+      <tr>
+        <td>${escapeHtml(reservation.name || "Sin nombre")}</td>
+        <td>${escapeHtml(formatDate(reservation.reservationDate))}</td>
+        <td>${escapeHtml(reservation.laboratory)}</td>
+      </tr>
     `
     )
     .join("");
 
-  return `<ul class="list">${items}</ul>`;
+  return `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Fecha</th>
+            <th>Laboratorio</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
 };
 
 const renderModal = () => `
@@ -76,11 +86,13 @@ const render = () => {
   root.innerHTML = `
     <div class="page">
       <header class="hero">
-        <p class="eyebrow">Agenda de laboratorios</p>
-        <h1>Reservas de Laboratorio</h1>
-        <p class="subtitle">
-          Administra fechas sin sobresaltos. Selecciona un laboratorio y confirma en segundos.
-        </p>
+        <div>
+          <p class="eyebrow">Agenda de laboratorios</p>
+          <h1>Reservas de Laboratorio</h1>
+          <p class="subtitle">
+            Administra fechas sin sobresaltos. Selecciona un laboratorio y confirma en segundos.
+          </p>
+        </div>
         <div class="hero-actions">
           <button id="new-reservation" class="primary-btn">+ Nueva reserva</button>
         </div>
@@ -130,4 +142,8 @@ const render = () => {
   }
 };
 
-render();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", render);
+} else {
+  render();
+}
