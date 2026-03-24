@@ -1,5 +1,5 @@
 {
-  "homepage": "https://JonasRamirez.github.io/practica06",
+  "homepage": "https://github.com/JonasRamirez/practica06.git",
   "scripts": {
     "dev": "vite --config reservation-app/vite.config.mjs",
     "build": "vite build --config reservation-app/vite.config.mjs",
