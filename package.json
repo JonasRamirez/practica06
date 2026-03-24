@@ -1,5 +1,5 @@
 {
-  "homepage": "https://JonasRamirez.github.io/st-icc-354-001-jxra0003",
+  "homepage": "https://JonasRamirez.github.io/practica06",
   "scripts": {
     "dev": "vite --config reservation-app/vite.config.mjs",
     "build": "vite build --config reservation-app/vite.config.mjs",
