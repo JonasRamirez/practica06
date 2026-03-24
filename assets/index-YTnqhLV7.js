@@ -1,5 +1,5 @@
 const LABS = [
-  "Laboratorio de Anatomía Digital",
+  "Laboratorio de AnatomÃ­a Digital",
   "Laboratorio de Nanociencias",
   "Laboratorio EICT",
   "Laboratorio DITEC"
@@ -18,16 +18,30 @@ const escapeHtml = (value = "") =>
 
 const formatDate = (value) => {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value || "—";
+  if (Number.isNaN(date.getTime())) return value || "â€”";
   return date.toLocaleString("es-BO", {
     dateStyle: "medium",
     timeStyle: "short"
   });
 };
 
+const formatDateOnly = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || "â€”";
+  return date.toLocaleDateString("es-BO", { dateStyle: "medium" });
+};
+
+const formatHourRange = (value) => {
+  const start = new Date(value);
+  if (Number.isNaN(start.getTime())) return "â€”";
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  const options = { hour: "numeric", minute: "2-digit", hour12: true };
+  return `${start.toLocaleTimeString("es-BO", options)} - ${end.toLocaleTimeString("es-BO", options)}`;
+};
+
 const renderList = () => {
   if (reservations.length === 0) {
-    return `<p class="empty">No hay reservas aún.</p>`;
+    return `<p class="empty">No hay reservas aÃºn.</p>`;
   }
 
   const rows = reservations
@@ -35,7 +49,8 @@ const renderList = () => {
       (reservation) => `
       <tr>
         <td>${escapeHtml(reservation.name || "Sin nombre")}</td>
-        <td>${escapeHtml(formatDate(reservation.reservationDate))}</td>
+        <td>${escapeHtml(formatDateOnly(reservation.reservationDate))}</td>
+        <td>${escapeHtml(formatHourRange(reservation.reservationDate))}</td>
         <td>${escapeHtml(reservation.laboratory)}</td>
       </tr>
     `
@@ -49,6 +64,7 @@ const renderList = () => {
           <tr>
             <th>Nombre</th>
             <th>Fecha</th>
+            <th>Horario</th>
             <th>Laboratorio</th>
           </tr>
         </thead>
@@ -66,7 +82,7 @@ const renderModal = () => `
         <input name="studentId" placeholder="ID" autocomplete="off" required />
         <input name="name" placeholder="Nombre" autocomplete="off" required />
         <input name="email" type="email" placeholder="Email" autocomplete="off" required />
-        <input type="datetime-local" name="reservationDate" required />
+        <input type="datetime-local" name="reservationDate" step="3600" required />
         <div class="select-wrap">
           <label for="laboratory">Laboratorio</label>
           <select id="laboratory" name="laboratory">
@@ -99,7 +115,7 @@ const render = () => {
       </header>
 
       <section class="container">
-        <h2 class="section-title">Próximas reservas</h2>
+        <h2 class="section-title">PrÃ³ximas reservas</h2>
         ${renderList()}
       </section>
 
@@ -126,6 +142,23 @@ const render = () => {
       event.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
+      const startDate = new Date(data.reservationDate);
+      const isValidDate = !Number.isNaN(startDate.getTime());
+      const onTheHour =
+        startDate.getMinutes() === 0 &&
+        startDate.getSeconds() === 0 &&
+        startDate.getMilliseconds() === 0;
+
+      if (!isValidDate) {
+        alert("Selecciona una fecha y hora vÃ¡lidas.");
+        return;
+      }
+
+      if (!onTheHour) {
+        alert("La hora debe estar en punto (ej. 14:00, 15:00).");
+        return;
+      }
+
       reservations = [
         ...reservations,
         {
