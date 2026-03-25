@@ -1,3 +1,5 @@
+const API_BASE = window.API_BASE_URL || "http://localhost:3000";
+
 const LABS = [
   "Laboratorio de Anatomía Digital",
   "Laboratorio de Nanociencias",
@@ -7,11 +9,13 @@ const LABS = [
 
 let reservations = [];
 let isModalOpen = false;
+let loading = true;
+let errorMessage = "";
 
 const root = document.getElementById("root");
 
 const escapeHtml = (value = "") =>
-  value
+  String(value)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
@@ -40,6 +44,14 @@ const formatHourRange = (value) => {
 };
 
 const renderList = () => {
+  if (loading) {
+    return `<p class="empty">Cargando reservas...</p>`;
+  }
+
+  if (errorMessage) {
+    return `<p class="error">${escapeHtml(errorMessage)}</p>`;
+  }
+
   const now = new Date();
   const upcoming = reservations.filter((reservation) => {
     const date = new Date(reservation.reservationDate);
@@ -139,14 +151,17 @@ const render = () => {
   if (isModalOpen) {
     const form = document.getElementById("reservation-form");
     const cancelBtn = document.getElementById("cancel-modal");
+    const submitBtn = form?.querySelector('button[type="submit"]');
 
     cancelBtn?.addEventListener("click", () => {
       isModalOpen = false;
       render();
     });
 
-    form?.addEventListener("submit", (event) => {
+    form?.addEventListener("submit", async (event) => {
       event.preventDefault();
+      if (!form || !submitBtn) return;
+
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
       const day = data.reservationDay;
@@ -176,24 +191,86 @@ const render = () => {
         return;
       }
 
-      reservations = [
-        ...reservations,
-        {
-          studentId: data.studentId,
-          name: data.name,
-          email: data.email,
-          reservationDate: `${day}T${time}`,
-          laboratory: data.laboratory
-        }
-      ];
-      isModalOpen = false;
-      render();
+      const payload = {
+        studentId: data.studentId.trim(),
+        name: data.name.trim(),
+        email: data.email.trim(),
+        reservationDate: startDate.toISOString(),
+        laboratory: data.laboratory,
+        timezoneOffsetMinutes: startDate.getTimezoneOffset()
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Guardando...";
+
+      try {
+        await saveReservation(payload);
+        isModalOpen = false;
+        await fetchReservations();
+      } catch (error) {
+        const message = error?.message || "No se pudo guardar la reserva.";
+        alert(message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Guardar";
+        render();
+      }
     });
   }
 };
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", render);
-} else {
+const fetchReservations = async () => {
+  loading = true;
+  errorMessage = "";
   render();
+
+  try {
+    const response = await fetch(`${API_BASE}/reservations?upcoming=true`);
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(body.message || `HTTP ${response.status}`);
+    }
+
+    const items = Array.isArray(body.items)
+      ? body.items
+      : Array.isArray(body)
+        ? body
+        : body.reservations || [];
+
+    reservations = items;
+  } catch (error) {
+    console.error("fetchReservations error", error);
+    errorMessage = "No se pudo cargar las reservas. Inténtalo de nuevo.";
+  } finally {
+    loading = false;
+    render();
+  }
+};
+
+const saveReservation = async (payload) => {
+  const response = await fetch(`${API_BASE}/reservations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(body.message || `HTTP ${response.status}`);
+  }
+
+  return body.item || body;
+};
+
+const bootstrap = () => {
+  render();
+  fetchReservations();
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootstrap);
+} else {
+  bootstrap();
 }
