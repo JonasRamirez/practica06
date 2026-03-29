@@ -20,15 +20,6 @@ const escapeHtml = (value = "") =>
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-const formatDate = (value) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value || "—";
-  return date.toLocaleString("es-BO", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  });
-};
-
 const formatDateOnly = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value || "—";
@@ -52,17 +43,11 @@ const renderList = () => {
     return `<p class="error">${escapeHtml(errorMessage)}</p>`;
   }
 
-  const now = new Date();
-  const upcoming = reservations.filter((reservation) => {
-    const date = new Date(reservation.reservationDate);
-    return !Number.isNaN(date.getTime()) && date >= now;
-  });
-
-  if (upcoming.length === 0) {
+  if (reservations.length === 0) {
     return `<p class="empty">No hay reservas aún.</p>`;
   }
 
-  const rows = upcoming
+  const rows = reservations
     .map(
       (reservation) => `
       <tr>
@@ -101,7 +86,7 @@ const renderModal = () => `
         <input name="name" placeholder="Nombre" autocomplete="off" required />
         <input name="email" type="email" placeholder="Email" autocomplete="off" required />
         <input type="date" name="reservationDay" required />
-        <input type="time" name="reservationTime" step="3600" min="08:00" max="22:00" required />
+        <input type="time" name="reservationTime" step="3600" required />
         <div class="select-wrap">
           <label for="laboratory">Laboratorio</label>
           <select id="laboratory" name="laboratory">
@@ -167,27 +152,9 @@ const render = () => {
       const day = data.reservationDay;
       const time = data.reservationTime;
       const startDate = new Date(`${day}T${time}`);
-      const hasDayAndTime = Boolean(day) && Boolean(time);
-      const isValidDate = hasDayAndTime && !Number.isNaN(startDate.getTime());
-      const hour = startDate.getHours();
-      const withinRange = hour >= 8 && hour <= 22;
-      const onTheHour =
-        startDate.getMinutes() === 0 &&
-        startDate.getSeconds() === 0 &&
-        startDate.getMilliseconds() === 0;
 
-      if (!isValidDate) {
-        alert("Selecciona un día y una hora válidos.");
-        return;
-      }
-
-      if (!onTheHour) {
-        alert("La hora debe terminar en :00 (ej. 2:00, 3:00, 14:00).");
-        return;
-      }
-
-      if (!withinRange) {
-        alert("La hora debe estar entre 08:00 y 22:00.");
+      if (!day || !time || Number.isNaN(startDate.getTime())) {
+        alert("Selecciona un día y una hora.");
         return;
       }
 
@@ -225,7 +192,7 @@ const fetchReservations = async () => {
   render();
 
   try {
-    const response = await fetch(`${API_BASE}/reservations?upcoming=true`);
+    const response = await fetch(`${API_BASE}/reservations`);
     const body = await response.json().catch(() => ({}));
 
     if (!response.ok) {

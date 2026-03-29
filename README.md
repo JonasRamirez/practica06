@@ -1,11 +1,11 @@
 # Reservas de Laboratorio
 
-Aplicación frontend estática que consume un backend serverless (AWS Lambda + DynamoDB).
+Frontend estático listo para publicarse en GitHub Pages. Toda la lógica de negocio debe residir en tu backend (por ejemplo, AWS Lambda + DynamoDB); aquí solo queda la capa de presentación.
 
-## Frontend
+## Uso
 
-- Archivos ya compilados en `index.html` y `assets/`.
-- Configura la API estableciendo `window.API_BASE_URL` antes de cargar el bundle, por ejemplo:
+- Archivos compilados en `index.html` y `assets/`.
+- Define la URL de la API antes de cargar el bundle:
 
 ```html
 <script>
@@ -14,21 +14,4 @@ Aplicación frontend estática que consume un backend serverless (AWS Lambda + D
 <script type="module" crossorigin src="/practica06/assets/index-YTnqhLV7.js"></script>
 ```
 
-Si no se define, la app intenta usar `http://localhost:3000`.
-
-## Backend
-
-Código en [`backend/`](./backend). Usa AWS SAM para desplegar:
-
-```bash
-cd backend
-npm install
-sam build
-sam deploy --guided
-```
-
-Endpoints disponibles:
-- `GET /reservations?upcoming=true`
-- `POST /reservations` con body `{ studentId, name, email, reservationDate (ISO), laboratory, timezoneOffsetMinutes }`
-
-Consulta [backend/README.md](./backend/README.md) para más detalles.
+Si no se define, la app usa `http://localhost:3000`.
