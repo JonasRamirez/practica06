@@ -9,7 +9,7 @@ Frontend estático listo para publicarse en GitHub Pages. Toda la lógica de neg
 
 ```html
 <script>
-  window.API_BASE_URL = "https://ussxigxr3h.execute-api.us-east-1.amazonaws.com/prod";
+  window.API_BASE_URL = "https://3w6u48uzdf.execute-api.us-east-1.amazonaws.com/prod";
 </script>
 <script type="module" crossorigin src="/practica06/assets/index-YTnqhLV7.js"></script>
 ```
